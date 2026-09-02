@@ -5,12 +5,6 @@
 #
 # Purpose: Display and log detailed system metrics including hostname,
 #          user, OS information, kernel version, uptime, CPU, and memory
-#
-# Usage: ./system-info.sh
-#
-# Exit Codes:
-#   0: Successfully displayed and logged system information
-#   1: Error during execution
 ##############################################################################
 
 set -euo pipefail

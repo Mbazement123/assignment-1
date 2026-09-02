@@ -5,12 +5,6 @@
 #
 # Purpose: Verify the complete implementation of the diagnostic toolkit
 #          by checking files, permissions, syntax, functionality, and Git
-#
-# Usage: ./grade.sh
-#
-# Exit Codes:
-#   0: All checks passed (PASS)
-#   1: Some checks failed (FAIL)
 ##############################################################################
 
 set -euo pipefail

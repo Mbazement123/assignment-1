@@ -6,15 +6,6 @@
 # Purpose: Perform comprehensive network diagnostics including DNS resolution,
 #          connectivity testing, interface enumeration, and optional TCP port
 #          testing
-#
-# Usage: ./network-check.sh <hostname-or-ip> [port]
-#   hostname-or-ip: Hostname or IP address to test (required)
-#   port: TCP port number (1-65535) to test connectivity (optional)
-#
-# Exit Codes:
-#   0: Network tests passed
-#   1: Network connectivity failed or port unreachable
-#   2: Invalid arguments
 ##############################################################################
 
 set -euo pipefail
