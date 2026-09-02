@@ -82,6 +82,11 @@ get_disk_usage() {
 ##############################################################################
 
 # Parse arguments
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+    echo "Error: Usage: ${0##*/} <threshold> [path]" >&2
+    exit 2
+fi
+
 THRESHOLD="${1:-}"
 PATH_TO_CHECK="${2:-.}"  # Default to current directory if not specified, but df will resolve to actual filesystem root
 
@@ -99,13 +104,19 @@ if ! validate_threshold "${THRESHOLD}"; then
     exit 2
 fi
 
-# Get current disk usage
-USAGE=$(get_disk_usage "${PATH_TO_CHECK}")
-EXIT_STATUS=$?
-
-if [[ ${EXIT_STATUS} -ne 0 ]]; then
+# Get current disk usage. Keep the command in a conditional because a
+# non-zero result is an expected, handled error for an invalid path.
+if ! USAGE=$(get_disk_usage "${PATH_TO_CHECK}"); then
     {
         echo "$(date '+%Y-%m-%d %H:%M:%S') | ERROR | Failed to get disk usage for ${PATH_TO_CHECK}"
+    } >> "${LOG_FILE}"
+    exit 2
+fi
+
+if ! [[ "${USAGE}" =~ ^[0-9]+$ ]]; then
+    echo "Error: df returned an invalid disk usage value" >&2
+    {
+        echo "$(date '+%Y-%m-%d %H:%M:%S') | ERROR | Invalid disk usage value: ${USAGE} | Path: ${PATH_TO_CHECK}"
     } >> "${LOG_FILE}"
     exit 2
 fi

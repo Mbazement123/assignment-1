@@ -71,6 +71,11 @@ get_memory_info() {
 # Main Execution
 ##############################################################################
 
+if [[ $# -ne 0 ]]; then
+    echo "Error: Usage: ${0##*/}" >&2
+    exit 2
+fi
+
 # Collect system information
 HOSTNAME=$(hostname)
 CURRENT_USER=$(whoami)

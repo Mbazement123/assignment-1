@@ -122,6 +122,9 @@ Perform comprehensive network diagnostics including DNS resolution, connectivity
 - `1`: Network connectivity failed or port unreachable
 - `2`: Invalid arguments
 
+An unresolvable hostname is reported as a connectivity failure and returns
+exit code `1`; it is not treated as a direct IP address.
+
 **Examples:**
 ```bash
 # Check connectivity to a host

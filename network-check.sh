@@ -90,9 +90,14 @@ resolve_host() {
         resolved_ip=$(nslookup "${host}" 2>/dev/null | grep "Address:" | tail -n1 | awk '{print $NF}')
     fi
     
-    # If all methods fail, assume it's an IP address
+    # Direct IPv4 addresses and localhost do not require DNS resolution.
     if [[ -z "${resolved_ip}" ]]; then
-        resolved_ip="${host}"
+        if [[ "${host}" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ || "${host}" == "localhost" ]]; then
+            resolved_ip="${host}"
+        else
+            echo "Error: Unable to resolve host: ${host}" >&2
+            return 1
+        fi
     fi
     
     echo "${resolved_ip}"
@@ -165,6 +170,11 @@ test_tcp_port() {
 ##############################################################################
 
 # Parse arguments
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+    echo "Error: Usage: ${0##*/} <hostname-or-ip> [port]" >&2
+    exit 2
+fi
+
 HOST="${1:-}"
 PORT="${2:-}"
 
@@ -192,12 +202,17 @@ echo
 
 # Step 1: Resolve hostname to IP
 echo "Resolving ${HOST}..."
-RESOLVED_IP=$(resolve_host "${HOST}")
+if ! RESOLVED_IP=$(resolve_host "${HOST}"); then
+    {
+        echo "${TIMESTAMP} | ERROR | Unable to resolve host: ${HOST}"
+    } >> "${LOG_FILE}"
+    exit 1
+fi
+
 if [[ -n "${RESOLVED_IP}" && "${RESOLVED_IP}" != "localhost" ]]; then
     echo "  Resolved to: ${RESOLVED_IP}"
 else
-    RESOLVED_IP="${HOST}"
-    echo "  (Unable to resolve; assuming direct IP or localhost)"
+    echo "  Resolved to: ${RESOLVED_IP}"
 fi
 echo
 

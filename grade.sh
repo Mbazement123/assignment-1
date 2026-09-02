@@ -40,17 +40,17 @@ print_check() {
     local status="$2"
     local details="${3:-}"
     
-    ((TOTAL_CHECKS++))
+    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
     
     if [[ "${status}" == "PASS" ]]; then
         echo -e "${GREEN}✓${NC} ${check_name}"
-        ((CHECKS_PASSED++))
+        CHECKS_PASSED=$((CHECKS_PASSED + 1))
     else
         echo -e "${RED}✗${NC} ${check_name}"
         if [[ -n "${details}" ]]; then
             echo -e "  ${RED}  ${details}${NC}"
         fi
-        ((CHECKS_FAILED++))
+        CHECKS_FAILED=$((CHECKS_FAILED + 1))
     fi
 }
 
@@ -125,8 +125,15 @@ check_system_info_output() {
     
     # Run system-info.sh and capture output
     local output
-    output=$(bash ./system-info.sh 2>&1 || true)
+    output=$(bash ./system-info.sh 2>&1)
+    local status=$?
     
+    if [[ ${status} -eq 0 ]]; then
+        print_check "system-info.sh exits successfully" "PASS"
+    else
+        print_check "system-info.sh exits successfully" "FAIL" "Exit code ${status}"
+    fi
+
     # Check if output contains expected fields
     local required_fields=("Hostname" "User" "Working Directory" "Date/Time" "OS" "Kernel" "Uptime" "CPU" "Memory")
     local all_fields_present=true
@@ -147,10 +154,10 @@ check_system_info_output() {
     fi
     
     # Check if log file was created
-    if [[ -f "logs/system-info.log" ]]; then
+    if [[ -s "logs/system-info.log" ]] && grep -q "Host:" "logs/system-info.log"; then
         print_check "system-info.log creation" "PASS"
     else
-        print_check "system-info.log creation" "FAIL" "Log file not created"
+        print_check "system-info.log creation" "FAIL" "Log file missing or empty"
     fi
     
     echo
@@ -164,54 +171,46 @@ check_disk_check_arguments() {
     echo "=== Testing disk-check.sh Argument Handling ==="
     
     # Test 1: Valid threshold
-    if bash ./disk-check.sh 50 / >/dev/null 2>&1; then
+    local valid_output
+    valid_output=$(bash ./disk-check.sh 50 / 2>&1)
+    local valid_status=$?
+    if [[ ${valid_status} -eq 0 || ${valid_status} -eq 1 ]] && echo "${valid_output}" | grep -q "Disk Usage"; then
         print_check "disk-check.sh: Valid threshold (50)" "PASS"
     else
-        # Exit code might be 0 or 1 depending on actual disk usage, both are acceptable
-        print_check "disk-check.sh: Valid threshold (50)" "PASS"
+        print_check "disk-check.sh: Valid threshold (50)" "FAIL" "Unexpected exit code or output"
     fi
     
-    # Test 2: Threshold too high (should fail)
-    if bash ./disk-check.sh 150 / >/dev/null 2>&1; then
-        print_check "disk-check.sh: Invalid threshold (150)" "FAIL" "Should reject threshold > 100"
-    else
-        local exit_code=$?
-        if [[ ${exit_code} -eq 2 ]]; then
-            print_check "disk-check.sh: Invalid threshold (150)" "PASS"
+    # Test invalid and boundary thresholds; each must return the documented code.
+    local threshold exit_code
+    for threshold in 0 101 abc; do
+        if bash ./disk-check.sh "${threshold}" / >/dev/null 2>&1; then
+            exit_code=0
         else
-            print_check "disk-check.sh: Invalid threshold (150)" "FAIL" "Should return exit code 2"
+            exit_code=$?
         fi
-    fi
-    
-    # Test 3: Non-integer threshold (should fail)
-    if bash ./disk-check.sh abc / >/dev/null 2>&1; then
-        print_check "disk-check.sh: Non-integer threshold" "FAIL" "Should reject non-integer"
-    else
-        local exit_code=$?
         if [[ ${exit_code} -eq 2 ]]; then
-            print_check "disk-check.sh: Non-integer threshold" "PASS"
+            print_check "disk-check.sh: Invalid threshold (${threshold})" "PASS"
         else
-            print_check "disk-check.sh: Non-integer threshold" "FAIL" "Should return exit code 2"
+            print_check "disk-check.sh: Invalid threshold (${threshold})" "FAIL" "Should return exit code 2"
         fi
-    fi
-    
-    # Test 4: Missing threshold (should fail)
+    done
+
     if bash ./disk-check.sh >/dev/null 2>&1; then
-        print_check "disk-check.sh: Missing threshold" "FAIL" "Should require threshold argument"
+        exit_code=0
     else
-        local exit_code=$?
-        if [[ ${exit_code} -eq 2 ]]; then
-            print_check "disk-check.sh: Missing threshold" "PASS"
-        else
-            print_check "disk-check.sh: Missing threshold" "FAIL" "Should return exit code 2"
-        fi
+        exit_code=$?
+    fi
+    if [[ ${exit_code} -eq 2 ]]; then
+        print_check "disk-check.sh: Missing threshold" "PASS"
+    else
+        print_check "disk-check.sh: Missing threshold" "FAIL" "Should return exit code 2"
     fi
     
     # Check if disk-check log was created
-    if [[ -f "logs/disk-check.log" ]]; then
+    if [[ -s "logs/disk-check.log" ]]; then
         print_check "disk-check.log creation" "PASS"
     else
-        print_check "disk-check.log creation" "FAIL" "Log file not created"
+        print_check "disk-check.log creation" "FAIL" "Log file missing or empty"
     fi
     
     echo
