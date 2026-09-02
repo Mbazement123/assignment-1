@@ -224,14 +224,3 @@ git branch -a
 
 The project uses at least 2 branches (`main` and feature branches) with meaningful commit history tracking the development of each diagnostic component.
 
-## Troubleshooting
-
-- **"Permission denied" errors**: Ensure scripts are executable: `chmod +x *.sh`
-- **"logs directory not writable"**: Check directory permissions: `ls -ld logs`
-- **Missing commands**: Some advanced features require `dig`, `nc`, or `curl`. Install if missing
-- **Network tests timeout**: If network is slow, the timeout values may need adjustment in `network-check.sh`
-- **sudo requirement**: Some disk/network tests may require elevated privileges; prepend `sudo` if needed
-
-## License & Author
-
-Created as an educational assignment for system administration and Bash scripting.
