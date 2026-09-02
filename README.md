@@ -1,4 +1,4 @@
-# Linux Diagnostic Toolkit
+# Linux Diagnostic
 
 A comprehensive suite of Bash scripts for system diagnostics, disk monitoring, and network connectivity analysis on Linux systems.
 
@@ -157,19 +157,8 @@ Automated verification and grading of the diagnostic toolkit components.
 ./grade.sh
 ```
 
-**Verification Checks:**
-- Required files exist (README.md, all .sh scripts, logs directory)
-- All scripts have executable permissions
-- Bash syntax validation for all scripts
-- Output validation for system-info.sh execution
-- Argument validation tests for disk-check.sh
-- Network validation tests for network-check.sh
-- Log file creation verification
-- Git history validation (commit count, branch structure)
-
 **Output Example:**
 ```bash
-$ ./grade.sh
 === GRADING SCRIPT ===
 Checking required files... ✓
 Checking executable permissions... ✓
@@ -181,34 +170,6 @@ Checking log file creation... ✓
 Checking Git history... ✓
 GRADE: PASS (8/8 checks passed)
 ```
-
-## Testing/Grading Execution
-
-Run the automated grading script to verify all components:
-
-```bash
-./grade.sh
-```
-
-This script performs comprehensive checks:
-1. Verifies all required files and directories exist
-2. Confirms scripts have executable permissions (`chmod +x`)
-3. Validates Bash syntax for all scripts
-4. Tests each diagnostic script with valid and invalid inputs
-5. Verifies log file creation and content
-6. Confirms Git repository state and history
-
-## Assumptions
-
-- **Operating System**: Linux-based (Ubuntu, Debian, CentOS, RHEL, Fedora, etc.)
-- **Shell**: Bash 4+
-- **User Privileges**: Scripts run as regular user (non-root); some features may require sudo for advanced diagnostics
-- **Network**: Basic network tools available (ping, curl, nc, dig/getent)
-- **File System**: Standard Linux file system hierarchy (/etc/os-release or lsb_release available)
-- **Git**: Version control is optional but verified by the grading script
-- **No External Dependencies**: All scripts use standard Linux utilities available in default installations
-- **Logging**: `logs/` directory must be writable for the toolkit to function properly
-- **Portability**: Scripts avoid bash-specific features where possible for compatibility with sh implementations, though bash 4+ is recommended
 
 ## Git Workflow
 
